@@ -1,14 +1,10 @@
 <?php
 
-class GithubProvider implements IProvider
+class GithubProvider extends AbstractProvider
 {
-    public function create(ValuesObject $valuesObject)
+    public function loadRemoteData(ValuesObject $valuesObject): ValuesObject
     {
     
-    }
-    
-    public function loadRemoteData(ValuesObject $valuesObject)
-    {
     
     }
 }

@@ -1,13 +1,8 @@
 <?php
 
-class GitlabProvider implements IProvider
+class GitlabProvider extends AbstractProvider
 {
-    public function create(ValuesObject $valuesObject)
-    {
-    
-    }
-    
-    public function loadRemoteData(ValuesObject $valuesObject)
+    public function loadRemoteData(ValuesObject $valuesObject): ValuesObject
     {
     
     }

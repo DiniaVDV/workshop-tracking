@@ -1,13 +1,8 @@
 <?php
 
-class RedmineProvider implements IProvider
+class RedmineProvider extends AbstractProvider
 {
-    public function create(ValuesObject $valuesObject)
-    {
-    
-    }
-    
-    public function loadRemoteData(ValuesObject $valuesObject)
+    public function loadRemoteData(ValuesObject $valuesObject): ValuesObject
     {
     
     }

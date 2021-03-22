@@ -1,13 +1,8 @@
 <?php
 
-class JiraProvider implements IProvider
+class JiraProvider extends AbstractProvider
 {
-    public function create(ValuesObject $valuesObject)
-    {
-    
-    }
-    
-    public function loadRemoteData(ValuesObject $valuesObject)
+    public function loadRemoteData(ValuesObject $valuesObject): ValuesObject
     {
     
     }
