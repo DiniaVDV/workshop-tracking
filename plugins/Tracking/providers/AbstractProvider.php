@@ -4,8 +4,9 @@
 abstract class AbstractProvider implements IProvider
 {
     protected $object;
+    protected $settingVO;
     
-    public function __construct()
+    public function __construct(SettingValuesObject $setting)
     {
         $objectName = $this->_getObjectName();
         $objectPath = $this->_getObjectPath();
@@ -15,13 +16,19 @@ abstract class AbstractProvider implements IProvider
             false,
             $objectPath
         );
+        $this->settingVO = $setting;
     }
     
-    public function create(ValuesObject $valuesObject): int
+    public function create(): int
     {
-        $values = $valuesObject->getCreateValues();
+        $values = $this->getSettingVO()->getCreateValues();
         
         return $this->object->add($values);
+    }
+    
+    protected function getSettingVO(): SettingValuesObject
+    {
+        return $this->settingVO;
     }
     
     private function _getObjectName(): string

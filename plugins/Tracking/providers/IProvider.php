@@ -2,6 +2,6 @@
 
 interface IProvider
 {
-    public function create(ValuesObject $valuesObject): int;
-    public function loadRemoteData(ValuesObject $valuesObject): array;
+    public function create(): int;
+    public function loadRemoteData(): array;
 }
