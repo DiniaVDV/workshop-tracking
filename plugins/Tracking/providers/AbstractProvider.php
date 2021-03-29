@@ -19,9 +19,9 @@ abstract class AbstractProvider implements IProvider
         $this->settingVO = $setting;
     }
     
-    public function create(): int
+    public function create(ValuesObject $valuesObject): int
     {
-        $values = $this->getSettingVO()->getCreateValues();
+        $values = $valuesObject->getCreateValues();
         
         return $this->object->add($values);
     }

@@ -25,7 +25,7 @@ class TrackingPlugin extends ObjectPlugin
         foreach ($settings as $setting) {
             $provider = $this->_getProviderInstanceBySetting($setting);
             
-            $data = $provider->loadRemoteData($setting);
+            $data = $provider->loadRemoteData();
             
             foreach ($data as $values)
             {
@@ -52,7 +52,7 @@ class TrackingPlugin extends ObjectPlugin
             throw new SystemException($msg);
         }
         
-        return new $className();
+        return new $className($setting);
     }
     
     private function _getProviderPathByName(string $name)
