@@ -34,6 +34,7 @@ class GitlabProvider extends AbstractProvider
  
     private function _getRemoteUserCode()
     {
+        // TODO move urls to some table
         $url = $this->getSettingVO()->getUrl().'user';
     
         $response = $this->_sendRemoteRequest($url);
@@ -51,7 +52,8 @@ class GitlabProvider extends AbstractProvider
     private function _getUserProjects()
     {
         $remoteUserCode = $this->getSettingVO()->getRemoveUserCode();
-        
+    
+        // TODO move urls to some table
         $url = Core::getInstance()->getUrl(
             $this->getSettingVO()->getUrl().'users/%s/projects',
             $remoteUserCode
@@ -69,6 +71,7 @@ class GitlabProvider extends AbstractProvider
     
     private function _getProjectCommits(array $project): ?array
     {
+        // TODO move urls to some table
         $url = Core::getInstance()->getUrl(
             $this->getSettingVO()->getUrl().'projects/%s/repository/commits',
             $project['id']
@@ -105,6 +108,7 @@ class GitlabProvider extends AbstractProvider
     
     private function _getCommitWithAdditionalData(array $project, array $commit): ?array
     {
+        // TODO move urls to some table
         $url = Core::getInstance()->getUrl(
             $this->getSettingVO()->getUrl().'projects/%s/repository/commits/%s',
             $project['id'],
