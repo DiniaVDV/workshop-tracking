@@ -31,45 +31,14 @@ class GitlabProvider extends AbstractProvider
         
         return $commits;
     }
-    
-    private function _getCommit(array $project, array $commit): ?array
-    {
-        $options = $this->_getDefaultCurlOptions();
-    
-        $curl = new Curl($options);
-    
-        $url = Core::getInstance()->getUrl(
-            $this->getSettingVO()->getUrl().'projects/%s/repository/commits/%s',
-            $project['id'],
-            $commit['id']
-        );
-    
-    
-        $result = $curl->getUrl($url, false, false, false, true);
-    
-        $response = json_decode($result, true);
-    
-        if (!$response || !is_array($response) || !array_key_exists('id', $response)) {
-            //TODO Think
-            return null;
-        }
-    
-        return $response;
-    }
-    
+ 
     private function _getRemoteUserCode()
     {
-        $options = $this->_getDefaultCurlOptions();
-    
-        $curl = new Curl($options);
-    
         $url = $this->getSettingVO()->getUrl().'user';
+    
+        $response = $this->_sendRemoteRequest($url);
         
-        $result = $curl->getUrl($url, false, false, false, true);
-        
-        $response = json_decode($result, true);
-        
-        if (!$response || !is_array($response) || !array_key_exists('id', $response)) {
+        if (!array_key_exists('id', $response)) {
             //TODO Think
             return null;
         }
@@ -87,16 +56,10 @@ class GitlabProvider extends AbstractProvider
             $this->getSettingVO()->getUrl().'users/%s/projects',
             $remoteUserCode
         );
-        
-        $options = $this->_getDefaultCurlOptions();
     
-        $curl = new Curl($options);
+        $response = $this->_sendRemoteRequest($url);
     
-        $result = $curl->getUrl($url, false, false, false, true);
-    
-        $response = json_decode($result, true);
-    
-        if (!$response || !is_array($response) || !is_array(current($response))) {
+        if (!is_array(current($response))) {
             //TODO Think
             return null;
         }
@@ -111,15 +74,9 @@ class GitlabProvider extends AbstractProvider
             $project['id']
         );
     
-        $options = $this->_getDefaultCurlOptions();
+        $commits = $this->_sendRemoteRequest($url);
     
-        $curl = new Curl($options);
-    
-        $result = $curl->getUrl($url, false, false, false, true);
-    
-        $commits = json_decode($result, true);
-    
-        if (!$commits || !is_array($commits) || !is_array(current($commits))) {
+        if (!is_array(current($commits))) {
             //TODO Think
             return null;
         }
@@ -136,7 +93,7 @@ class GitlabProvider extends AbstractProvider
                 continue;
             }
     
-            $commitData = $this->_getCommit($project, $commit);
+            $commitData = $this->_getCommitWithAdditionalData($project, $commit);
     
             if ($commitData) {
                 $data[] = new GitlabValuesObject($commitData);
@@ -146,6 +103,41 @@ class GitlabProvider extends AbstractProvider
         return $data;
     }
     
+    private function _getCommitWithAdditionalData(array $project, array $commit): ?array
+    {
+        $url = Core::getInstance()->getUrl(
+            $this->getSettingVO()->getUrl().'projects/%s/repository/commits/%s',
+            $project['id'],
+            $commit['id']
+        );
+    
+        $response = $this->_sendRemoteRequest($url);
+        
+        if (!array_key_exists('id', $response)) {
+            //TODO Think
+            return null;
+        }
+        
+        return $response;
+    }
+    
+    private function _sendRemoteRequest(string $url): array
+    {
+        $options = $this->_getDefaultCurlOptions();
+    
+        $curl = new Curl($options);
+    
+        $result = $curl->getUrl($url, false, false, false, true);
+    
+        $response = json_decode($result, true);
+    
+        if (!$response || !is_array($response) || !array_key_exists('id', $response)) {
+            //TODO Think
+            return array();
+        }
+        
+        return $response;
+    }
     private function _getDefaultCurlOptions(): array
     {
         return array(
