@@ -64,6 +64,11 @@ class RedmineProvider extends AbstractProvider
     
             $response = $this->_sendRemoteRequest($url);
     
+            if (!array_key_exists('issue', $response) ||
+                !is_array($response['issue'])) {
+                continue;
+            }
+            
             $task['subject'] = $response['issue']['subject'];
             $task['start_date'] = $response['issue']['start_date'];
             $task['subject'] = $response['issue']['subject'];
