@@ -71,10 +71,18 @@ class RedmineProvider extends AbstractProvider
             
             $task['subject'] = $response['issue']['subject'];
             $task['start_date'] = $response['issue']['start_date'];
-            $task['subject'] = $response['issue']['subject'];
+            $task['priority_name'] = $response['priority']['name'];
+            $task['project_id'] = $task['project']['id'];
+            $task['project_name'] = $task['project']['name'];
+            $task['url'] = $this->_getTaskUrlByID($task['issue']['id']);
         }
         
         return true;
+    }
+    
+    private function _getTaskUrlByID(int $id): string
+    {
+        return sprintf('%s/issues/%s', $this->getSettingVO()->getUrl(), $id);
     }
     
     private function _getRemoteUserCode()
