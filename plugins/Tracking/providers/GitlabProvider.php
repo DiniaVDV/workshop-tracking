@@ -122,6 +122,9 @@ class GitlabProvider extends AbstractProvider
             return null;
         }
         
+        $response['project_name'] = $project['name'];
+        $response['url_to_project'] = $project['http_url_to_repo'];
+        
         return $response;
     }
     
