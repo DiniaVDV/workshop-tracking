@@ -1,7 +1,7 @@
 <?php
 
 
-class GithubValuesObject extends ValuesObject
+class GithubValuesObject extends ValuesObject implements ITrackingValuesObject
 {
     public function getCreateValues(): array
     {

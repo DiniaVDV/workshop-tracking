@@ -1,7 +1,7 @@
 <?php
 
 
-class JiraValuesObject extends ValuesObject
+class JiraValuesObject extends ValuesObject implements ITrackingValuesObject
 {
     public function getCreateValues(): array
     {

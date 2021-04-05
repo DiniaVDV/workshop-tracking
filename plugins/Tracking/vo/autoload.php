@@ -1,6 +1,7 @@
 <?php
 
 require_once 'SettingValuesObject.php';
+require_once 'ITrackingValuesObject.php';
 require_once 'GitlabValuesObject.php';
 require_once 'GitlabRemoteValuesObject.php';
 require_once 'GithubValuesObject.php';
