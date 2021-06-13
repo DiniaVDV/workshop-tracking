@@ -1,11 +1,13 @@
 <?php
 
 
-class RedmineCommitValuesObject extends ValuesObject implements ITrackingIssueValuesObject
+class RedmineIssueValuesObject extends ValuesObject implements ITrackingIssueValuesObject
 {
     public function getID(): int
     {
-        return $this->get('id');
+        $issue = $this->_getIssue();
+        
+        return $issue['id'];
     }
     
     public function getStartDate(): string
@@ -20,22 +22,21 @@ class RedmineCommitValuesObject extends ValuesObject implements ITrackingIssueVa
     
     public function getProjectName(): string
     {
-        return $this->get('project_name');
+        $project = $this->_getProject();
+    
+        return $project['name'];
     }
     
     public function getProjectID(): string
     {
-        return $this->get('project_id');
+        $project = $this->_getProject();
+        
+        return $project['id'];
     }
     
     public function getPriorityName(): string
     {
         return $this->get('priority_name');
-    }
-    
-    public function getUrl(): string
-    {
-        return $this->get('url');
     }
     
     public function getCommets(): string
@@ -53,18 +54,23 @@ class RedmineCommitValuesObject extends ValuesObject implements ITrackingIssueVa
         return $this->get('subject');
     }
     
-    public function getCreateValues(): array
+    public function getDomain(): string
     {
-        return array(
-            'subject'       => $this->getSubject(),
-            'hours'         => $this->getHour(),
-            'comments'      => $this->getCommets(),
-            'start_date'    => $this->getStartDate(),
-            'spent_on'      => $this->getSpentOn(),
-            'project_name'  => $this->getProjectName(),
-            'project_id'    => $this->getProjectID(),
-            'priority_name' => $this->getPriorityName(),
-            'url'           => $this->getUrl(),
-        );
+        return $this->get('domain');
+    }
+    
+    public function getUrl(): string
+    {
+        return sprintf('%s/issues/%s', $this->getDomain(), $this->getID());
+    }
+    
+    private function _getProject()
+    {
+        return $this->get('project');
+    }
+    
+    private function _getIssue()
+    {
+        return $this->get('issue');
     }
 }
