@@ -2,7 +2,7 @@
 
 class RedmineObject extends DataAccessObject
 {
-    const TABLE_MAIN = 'tracking_time';
+    const TABLE_MAIN = 'tracking_issues';
     
     public function add(array $values)
     {
