@@ -1,6 +1,8 @@
 <?php
 
-class JiraProvider extends AbstractProvider
+namespace plugins\tracking\providers;
+
+class Jira extends AbstractProvider
 {
     public function loadRemoteData(): array
     {

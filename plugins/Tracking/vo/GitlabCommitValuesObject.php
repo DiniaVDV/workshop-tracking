@@ -1,6 +1,6 @@
 <?php
 
-class GitlabValuesObject extends ValuesObject implements ITrackingValuesObject
+class GitlabCommitValuesObject extends ValuesObject implements ITrackingCommitValuesObject
 {
     public function getID(): string
     {

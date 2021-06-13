@@ -1,66 +1,51 @@
 <?php
 
-class GitlabProvider extends AbstractProvider
+namespace tracking\services;
+
+class Gitlab implements ITrackingService
 {
-    public function loadRemoteData(): array
-    {
-        $remoteUserCode = $this->getSettingVO()->getRemoveUserCode();
-        
-        if (!$remoteUserCode) {
-            $remoteUserCode = $this->_getRemoteUserCode();
-            $this->getSettingVO()->setRemoteUserCode($remoteUserCode);
-        }
+    protected $settings;
     
-        return $this->_getCommits();
+    public function __construct(SettingValuesObject $settings)
+    {
+        $this->settings = $settings;
     }
     
-    private function _getCommits(): array
+    protected function getSettings(): SettingValuesObject
     {
-        $projects = $this->_getUserProjects();
-    
-        $commits = array();
-    
-        foreach ($projects as $project) {
-            $values = $this->_getProjectCommits($project);
-            if ($values) {
-                $commits[] = $values;
-            }
-        }
-    
-        $commits = array_merge(...$commits);
-        
-        return $commits;
+        return $this->settings;
     }
- 
-    private function _getRemoteUserCode()
+    
+    public function loadUserID():bool
     {
         // TODO move urls to some table
-        $url = $this->getSettingVO()->getUrl().'user';
-    
+        $url = $this->getSettings()->getUrl().'user';
+        
         $response = $this->_sendRemoteRequest($url);
         
         if (!array_key_exists('id', $response)) {
             //TODO Think
-            return null;
+            return false;
         }
+    
+        $this->getSettings()->setRemoteUserCode($response['id']);
         
-        $remoteCode = $response['id'];
-        
-        return $remoteCode;
+        return true;
     }
     
-    private function _getUserProjects()
+    public function getUserProjects()
     {
-        $remoteUserCode = $this->getSettingVO()->getRemoveUserCode();
-    
+        $remoteUserCode = $this->getSettings()->getRemoveUserCode();
+        
         // TODO move urls to some table
-        $url = Core::getInstance()->getUrl(
-            $this->getSettingVO()->getUrl().'users/%s/projects',
+        $url = sprintf(
+            '%s/users/%s/projects',
+            $this->getSettings()->getUrl(),
             $remoteUserCode
         );
-    
+        
         $response = $this->_sendRemoteRequest($url);
-    
+        
         if (!is_array(current($response))) {
             //TODO Think
             return null;
@@ -69,35 +54,36 @@ class GitlabProvider extends AbstractProvider
         return $response;
     }
     
-    private function _getProjectCommits(array $project): ?array
+    public function getCommitsByProject(array $project): ?array
     {
         // TODO move urls to some table
-        $url = Core::getInstance()->getUrl(
-            $this->getSettingVO()->getUrl().'projects/%s/repository/commits',
+        $url = sprintf(
+            '%s/projects/%s/repository/commits',
+            $this->getSettingVO()->getUrl(),
             $project['id']
         );
-    
+        
         $commits = $this->_sendRemoteRequest($url);
-    
+        
         if (!is_array(current($commits))) {
             //TODO Think
             return null;
         }
-    
-        return $this->_getCommitsWithAdditionalData($project, $commits);
+        
+        return $commits;
     }
     
-    private function _getCommitsWithAdditionalData(array $project, array $commits): array
+    public function getCommitsWithAdditionalData(array $project, array $commits): array
     {
         $data = array();
         
         foreach ($commits as $commit) {
-            if ($commit['author_email'] !== $this->getSettingVO()->getEmail()) {
+            if ($commit['author_email'] !== $this->getSettings()->getEmail()) {
                 continue;
             }
-    
+            
             $commitData = $this->_getCommitWithAdditionalData($project, $commit);
-    
+            
             if ($commitData) {
                 $data[] = new GitlabValuesObject($commitData);
             }
@@ -109,12 +95,13 @@ class GitlabProvider extends AbstractProvider
     private function _getCommitWithAdditionalData(array $project, array $commit): ?array
     {
         // TODO move urls to some table
-        $url = Core::getInstance()->getUrl(
-            $this->getSettingVO()->getUrl().'projects/%s/repository/commits/%s',
+        $url = sprintf(
+            '%s/projects/%s/repository/commits/%s',
+            $this->getSettings()->getUrl(),
             $project['id'],
             $commit['id']
         );
-    
+        
         $response = $this->_sendRemoteRequest($url);
         
         if (!array_key_exists('id', $response)) {
@@ -131,13 +118,13 @@ class GitlabProvider extends AbstractProvider
     private function _sendRemoteRequest(string $url): array
     {
         $options = $this->_getDefaultCurlOptions();
-    
+        
         $curl = new Curl($options);
-    
+        
         $result = $curl->getUrl($url, false, false, false, true);
-    
+        
         $response = json_decode($result, true);
-    
+        
         if (!$response || !is_array($response) || !array_key_exists('id', $response)) {
             //TODO Think
             return array();
@@ -149,7 +136,7 @@ class GitlabProvider extends AbstractProvider
     {
         return array(
             CURLOPT_HTTPHEADER => array(
-                'Authorization: Bearer '.$this->getSettingVO()->getRemoteApiToken(),
+                'Authorization: Bearer '.$this->getSettings()->getRemoteApiToken(),
             ),
             CURLOPT_FAILONERROR => 0,
         );

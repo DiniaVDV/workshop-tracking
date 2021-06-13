@@ -1,7 +1,7 @@
 <?php
 
 
-class RedmineValuesObject extends ValuesObject implements ITrackingValuesObject
+class RedmineCommitValuesObject extends ValuesObject implements ITrackingIssueValuesObject
 {
     public function getID(): int
     {

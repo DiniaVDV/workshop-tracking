@@ -1,6 +1,8 @@
 <?php
 
-class RedmineProvider extends AbstractProvider
+namespace plugins\tracking\providers;
+
+class Redmine extends AbstractProvider
 {
     public function loadRemoteData(): array
     {
