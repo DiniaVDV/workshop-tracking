@@ -1,58 +1,43 @@
 <?php
 
-require_once 'vo/autoload.php';
-
 class TrackingPlugin extends ObjectPlugin
 {
     public function onCronSyncUsersData(): bool
     {
-        $users = $this->plugin->users->search();
-        
-        foreach ($users as $user) {
-            $settings = $this->_searchSettingsByUser($user);
-            
-            if (!$settings) {
-                continue;
-            }
-            
-            $this->_updateBySettings($settings);
-        }
-        return true;
-    }
+        $settings = $this->_searchSettings();
     
-    private function _updateBySevices(array $settings)
-    {
         foreach ($settings as $setting) {
             $provider = $this->_getProviderInstanceBySetting($setting);
-            
+        
             $data = $provider->loadRemoteData();
-            
+        
             foreach ($data as $values)
             {
                 $provider->create($values);
             }
         }
+        
+        return true;
+    }
+    
+    public function onCronSyncUsersDataByProvider(IProvider $provider)
+    {
+    
     }
     
     private function _getProviderInstanceBySetting(SettingValuesObject $setting): IProvider
     {
-        $className = ucfirst($setting->getIdent()).'Provider';
-        
-        $path = $this->_getProviderPathByName($className);
-        
-        if (!file_exists($path)) {
-            $msg = __('Could Not Find File "%s"', $path);
-            throw new SystemException($msg);
-        }
-        
-        require_once $path;
+        $className = $setting->getClassName();
         
         if (class_exists($className)) {
             $msg = __('Could Not Class "%s"', $className);
             throw new SystemException($msg);
         }
         
-        return new $className($setting);
+        $instance = new $className();
+        $instance->onInit($setting);
+        
+        return $instance;
     }
     
     private function _getProviderPathByName(string $name)
@@ -60,13 +45,9 @@ class TrackingPlugin extends ObjectPlugin
         return sprintf('%s/providers/%s.php', __DIR__, $name);
     }
     
-    private function _updateBySettings(UserValuesObject $user)
+    private function _searchSettings()
     {
-        $search = array(
-            'id_user' => $user->getID(),
-        );
-    
-        $values = $this->object->searchSettings($search);
+        $values = $this->object->searchSettings();
         
         if ($values) {
             $values = $this->_convertDataToValuesObject($values);
