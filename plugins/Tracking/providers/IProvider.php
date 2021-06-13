@@ -1,7 +1,9 @@
 <?php
 
+namespace tracking\providers;
+
 interface IProvider
 {
-    public function create(ValuesObject $valuesObject): int;
+    public function onInit(SettingValuesObject $settings, ITrackingObject $object);
     public function loadRemoteData(): array;
 }

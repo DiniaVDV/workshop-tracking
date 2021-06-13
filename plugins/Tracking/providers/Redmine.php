@@ -1,133 +1,35 @@
 <?php
 
-namespace plugins\tracking\providers;
+namespace tracking\providers;
 
 class Redmine extends AbstractProvider
 {
     public function loadRemoteData(): array
     {
-        $remoteUserCode = $this->getSettingVO()->getRemoteUserCode();
+        $issues = $this->getService()->getIssues();
         
-        if (!$remoteUserCode) {
-            $remoteUserCode = $this->_getRemoteUserCode();
-            $this->getSettingVO()->setRemoteUserCode($remoteUserCode);
-        }
+        $this->_preparedIssues($issues);
         
-        return $this->_getTasks();
+        return $issues;
     }
     
-    private function _getTasks(): array
+    private function _preparedIssues(array &$issues): bool
     {
-        $offset = 0;
-        $limit  = 50;
-        $tasks = array();
-        
-        do {
-            $params = array(
-                'user_id'  => $this->getSettingVO()->getRemoteUserCode(),
-                'spent_on' => date('Y-m-d', strtotime('- 1 day')),
-                'offset'   => $offset,
-                'limit'    => $limit,
-            );
-            $url = Core::getInstance()->getUrl(
-                $this->getSettingVO()->getUrl().'time_entries.json',
-                $params
-            );
-    
-            $response = $this->_sendRemoteRequest($url);
+        foreach ($issues as $key => $issue) {
+            $response = $this->getService()->getIssueAdditionalInfo($issue);
             
-            if (!array_key_exists('time_entries', $response)) {
-                break;
-            }
-            $tasks[] = $response;
-            $offset += $limit;
-        } while ($response['time_entries']);
-    
-        $tasks = array_merge(...$tasks);
-    
-        if ($tasks) {
-            $this->_preparedTasks($tasks);
-        }
-        
-        return $tasks;
-    }
-    
-    private function _preparedTasks(array &$tasks): bool
-    {
-        foreach ($tasks as &$task) {
-            if (!array_key_exists('issue', $task) ||
-                !array_key_exists('id', $task['issue'])) {
+            if (!$response) {
                 continue;
             }
-            $url = Core::getInstance()->getUrl(
-                $this->getSettingVO()->getUrl().'issues/%s.json',
-                $task['issue']['id']
-            );
     
-            $response = $this->_sendRemoteRequest($url);
+            $issue['subject'] = $response['issue']['subject'];
+            $issue['start_date'] = $response['issue']['start_date'];
+            $issue['priority_name'] = $response['priority']['name'];
+            $issue['domain'] = $this->getService()->getSettings()->getUrl();
     
-            if (!array_key_exists('issue', $response) ||
-                !is_array($response['issue'])) {
-                continue;
-            }
-            
-            $task['subject'] = $response['issue']['subject'];
-            $task['start_date'] = $response['issue']['start_date'];
-            $task['priority_name'] = $response['priority']['name'];
-            $task['project_id'] = $task['project']['id'];
-            $task['project_name'] = $task['project']['name'];
-            $task['url'] = $this->_getTaskUrlByID($task['issue']['id']);
+            $issues[$key] = new RedmineIssueValuesObject($issue);
         }
         
         return true;
     }
-    
-    private function _getTaskUrlByID(int $id): string
-    {
-        return sprintf('%s/issues/%s', $this->getSettingVO()->getUrl(), $id);
-    }
-    
-    private function _getRemoteUserCode()
-    {
-        // TODO move urls to some table
-        $url = $this->getSettingVO()->getUrl().'/users/current.json';
-        
-        $response = $this->_sendRemoteRequest($url);
-        
-        if (!array_key_exists('user', $response) || !is_array($response['user'])) {
-            //TODO Think
-            return null;
-        }
-        
-        return $response['id'];
-    }
-    
-    private function _sendRemoteRequest(string $url): array
-    {
-        $options = $this->_getDefaultCurlOptions();
-        
-        $curl = new Curl($options);
-        
-        $result = $curl->getUrl($url, false, false, false, true);
-        
-        $response = json_decode($result, true);
-        
-        if (!$response || !is_array($response) || !array_key_exists('id', $response)) {
-            //TODO Think
-            return array();
-        }
-        
-        return $response;
-    }
-    
-    private function _getDefaultCurlOptions(): array
-    {
-        return array(
-            CURLOPT_HTTPHEADER => array(
-                'Authorization: Bearer '.$this->getSettingVO()->getRemoteApiToken(),
-            ),
-            CURLOPT_FAILONERROR => 0,
-        );
-    }
-   
 }

@@ -1,6 +1,8 @@
 <?php
 
-class GithubProvider extends AbstractProvider
+namespace tracking\providers;
+
+class Github extends AbstractProvider
 {
     public function loadRemoteData(): array
     {

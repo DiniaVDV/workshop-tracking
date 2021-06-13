@@ -1,45 +1,30 @@
 <?php
 
+namespace tracking\providers;
 
 abstract class AbstractProvider implements IProvider
 {
-    protected $object;
-    protected $settingVO;
+    protected $service;
     
-    public function __construct(SettingValuesObject $setting)
+    public function onInit(SettingValuesObject $settings, ITrackingObject $object)
     {
-        $objectName = $this->_getObjectName();
-        $objectPath = $this->_getObjectPath();
+        $this->service = $this->_createServiceInstance($settings);
+        $remoteUserCode = $settings->getRemoteUserCode();
         
-        $this->object = Core::getInstance()->getObject(
-            $objectName,
-            false,
-            $objectPath
-        );
-        $this->settingVO = $setting;
+        if (!$remoteUserCode) {
+            $this->getService()->loadUserID();
+        }
+    }
+
+    public function getService(): ITrackingService
+    {
+        return $this->service;
     }
     
-    public function create(ValuesObject $valuesObject): int
+    private function _createServiceInstance(SettingValuesObject $settings): ITrackingService
     {
-        $values = $valuesObject->getCreateValues();
+        $className = 'tracking\\libs\\'.ucfirst($settings->getIdent());
         
-        return $this->object->add($values);
-    }
-    
-    protected function getSettingVO(): SettingValuesObject
-    {
-        return $this->settingVO;
-    }
-    
-    private function _getObjectName(): string
-    {
-        $className = get_class($this);
-    
-        return strstr($className, 'Provider', true);
-    }
-    
-    private function _getObjectPath(): string
-    {
-        return realpath(__DIR__.'../objects/');
+        return new $className($settings);
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace plugins\tracking\providers;
+namespace tracking\providers;
 
 class Jira extends AbstractProvider
 {
