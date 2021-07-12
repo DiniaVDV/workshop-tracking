@@ -12,12 +12,16 @@ class TrackingPlugin extends ObjectPlugin
     public const TYPE_ISSUE  = 'issue';
     public const TYPE_COMMIT = 'commit';
     
-    public function onCronSyncUsersIssues(): bool
+    public function onCronSyncUsersIssues(?ITrackingDataAccessObject $dao = null): bool
     {
         $settings = $this->_searchSettingsByType(static::TYPE_ISSUE);
     
+        if (!$dao) {
+            $dao = $this->object;
+        }
+    
         foreach ($settings as $setting) {
-            $provider = $this->_getProviderIssueInstanceBySetting($setting);
+            $provider = $this->_getProviderIssueInstanceBySetting($setting, $dao);
         
             $data = $provider->loadRemoteData();
         
@@ -30,12 +34,16 @@ class TrackingPlugin extends ObjectPlugin
         return true;
     }
     
-    public function onCronSyncUsersCommits(): bool
+    public function onCronSyncUsersCommits(?ITrackingDataAccessObject $dao = null): bool
     {
         $settings = $this->_searchSettingsByType(static::TYPE_COMMIT);
     
+        if (!$dao) {
+            $dao = $this->object;
+        }
+        
         foreach ($settings as $setting) {
-            $provider = $this->_getProviderCommitInstanceBySetting($setting);
+            $provider = $this->_getProviderCommitInstanceBySetting($setting, $dao);
         
             $data = $provider->loadRemoteData();
         
@@ -102,25 +110,9 @@ class TrackingPlugin extends ObjectPlugin
         return $result;
     }
     
-    private function _onSyncBySettings(array $settings, IProviderCommit $provider): array
-    {
-        $result = array();
-    
-        foreach ($settings as $setting) {
-            $provider->onInit($setting, $dao);
-        
-            $data = $provider->loadRemoteData();
-        
-            foreach ($data as $values)
-            {
-                $result[] = $provider->create($values);
-            }
-        }
-        
-        return $result;
-    }
-    
-    private function _getProviderCommitInstanceBySetting(SettingValuesObject $setting): IProviderCommit
+    private function _getProviderCommitInstanceBySetting(
+        SettingValuesObject $setting, ITrackingDataAccessObject $dao
+    ): IProviderCommit
     {
         $service = $this->_getServiceByID($setting->getServiceID());
         
@@ -137,12 +129,14 @@ class TrackingPlugin extends ObjectPlugin
         }
         
         $instance = new $className();
-        $instance->onInit($setting, $this->object);
+        $instance->onInit($setting, $dao);
         
         return $instance;
     }
     
-    private function _getProviderIssueInstanceBySetting(SettingValuesObject $setting): IProviderIssue
+    private function _getProviderIssueInstanceBySetting(
+        SettingValuesObject $setting, ITrackingDataAccessObject $dao
+    ): IProviderIssue
     {
         $service = $this->_getServiceByID($setting->getServiceID());
     
@@ -159,7 +153,7 @@ class TrackingPlugin extends ObjectPlugin
         }
     
         $instance = new $className();
-        $instance->onInit($setting, $this->object);
+        $instance->onInit($setting, $dao);
     
         return $instance;
     }

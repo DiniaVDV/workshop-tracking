@@ -2,6 +2,7 @@
 
 namespace tracking\services;
 
+use plugin\tracking\vo\GithubCommitValuesObject;
 use SettingValuesObject;
 
 class Gitlab implements ITrackingService
@@ -75,6 +76,11 @@ class Gitlab implements ITrackingService
         return $commits;
     }
     
+    /**
+     * @param array $project
+     * @param array $commits
+     * @return GithubCommitValuesObject[]
+     */
     public function getCommitsWithAdditionalData(array $project, array $commits): array
     {
         $data = array();

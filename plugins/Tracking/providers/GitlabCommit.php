@@ -2,10 +2,14 @@
 
 namespace tracking\providers;
 
+use plugin\tracking\vo\GitlabCommitValuesObject;
 use plugin\tracking\vo\ITrackingCommitValuesObject;
 
 class GitlabCommit extends AbstractProvider implements IProviderCommit
 {
+    /**
+     * @return GitlabCommitValuesObject[]
+     */
     public function loadRemoteData(): array
     {
         $projects = $this->getService()->getUserProjects();
