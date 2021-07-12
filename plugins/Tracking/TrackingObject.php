@@ -1,9 +1,11 @@
 <?php
 
+namespace plugin\tracking;
+
 use plugin\tracking\vo\ITrackingCommitValuesObject;
 use plugin\tracking\vo\ITrackingIssueValuesObject;
 
-class TrackingObject extends DataAccessObject implements ITrackingObject
+class TrackingObject extends \DataAccessObject implements ITrackingDAO
 {
     public const TABLE_USER_SETTINGS = 'tracking_user_settings';
     public const TABLE_SERVICE       = 'tracking_services';
