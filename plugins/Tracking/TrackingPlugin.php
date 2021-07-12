@@ -17,7 +17,7 @@ class TrackingPlugin extends ObjectPlugin
         $settings = $this->_searchSettingsByType(static::TYPE_ISSUE);
     
         foreach ($settings as $setting) {
-            $provider = $this->_getProviderInstanceBySetting($setting);
+            $provider = $this->_getProviderIssueInstanceBySetting($setting);
         
             $data = $provider->loadRemoteData();
         
@@ -35,7 +35,7 @@ class TrackingPlugin extends ObjectPlugin
         $settings = $this->_searchSettingsByType(static::TYPE_COMMIT);
     
         foreach ($settings as $setting) {
-            $provider = $this->_getProviderInstanceBySetting($setting);
+            $provider = $this->_getProviderCommitInstanceBySetting($setting);
         
             $data = $provider->loadRemoteData();
         
@@ -120,7 +120,7 @@ class TrackingPlugin extends ObjectPlugin
         return $result;
     }
     
-    private function _getProviderInstanceBySetting(SettingValuesObject $setting): IProvider
+    private function _getProviderCommitInstanceBySetting(SettingValuesObject $setting): IProviderCommit
     {
         $service = $this->_getServiceByID($setting->getServiceID());
         
@@ -139,6 +139,28 @@ class TrackingPlugin extends ObjectPlugin
         $instance = new $className();
         $instance->onInit($setting, $this->object);
         
+        return $instance;
+    }
+    
+    private function _getProviderIssueInstanceBySetting(SettingValuesObject $setting): IProviderIssue
+    {
+        $service = $this->_getServiceByID($setting->getServiceID());
+    
+        if (!$service) {
+            $msg = __('Could Not Find Service By ID "%s"', $setting->getServiceID());
+            throw new SystemException($msg);
+        }
+    
+        $className = $service->geClassName();
+    
+        if (class_exists($className)) {
+            $msg = __('Could Not Find Class "%s"', $className);
+            throw new SystemException($msg);
+        }
+    
+        $instance = new $className();
+        $instance->onInit($setting, $this->object);
+    
         return $instance;
     }
     
