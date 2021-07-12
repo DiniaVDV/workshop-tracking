@@ -13,4 +13,5 @@ interface ITrackingIssueValuesObject
     public function getCommets(): string;
     public function getHour(): string;
     public function getSubject(): string;
+    public function getValues(): array;
 }

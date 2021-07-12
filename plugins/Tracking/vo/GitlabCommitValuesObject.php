@@ -2,7 +2,7 @@
 
 namespace plugin\tracking\vo;
 
-class GitlabCommitValuesObject extends ValuesObject implements ITrackingCommitValuesObject
+class GitlabCommitValuesObject extends \ValuesObject implements ITrackingCommitValuesObject
 {
     public function getID(): string
     {

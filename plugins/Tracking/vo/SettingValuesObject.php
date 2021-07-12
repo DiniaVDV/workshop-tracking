@@ -1,5 +1,7 @@
 <?php
 
+namespace plugin\tracking\vo;
+
 class SettingValuesObject extends ValuesObject
 {
     public function getUrl()
@@ -11,9 +13,9 @@ class SettingValuesObject extends ValuesObject
     {
         return $this->get('token');
     }
-    
-    public function geClassName()
+
+    public function getServiceID()
     {
-        return $this->get('class_name');
+        return $this->get('id_service');
     }
 }
