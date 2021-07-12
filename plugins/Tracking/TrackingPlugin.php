@@ -1,5 +1,8 @@
 <?php
 
+use plugin\tracking\vo\ServiceValuesObject;
+use tracking\providers\IProvider;
+
 class TrackingPlugin extends ObjectPlugin
 {
     public const TYPE_ISSUE  = 'issue';
@@ -30,10 +33,17 @@ class TrackingPlugin extends ObjectPlugin
     
     private function _getProviderInstanceBySetting(SettingValuesObject $setting): IProvider
     {
-        $className = $setting->getClassName();
+        $service = $this->_getServiceByID($setting->getServiceID());
+        
+        if (!$service) {
+            $msg = __('Could Not Find Service By ID "%s"', $setting->getServiceID());
+            throw new SystemException($msg);
+        }
+        
+        $className = $service->geClassName();
         
         if (class_exists($className)) {
-            $msg = __('Could Not Class "%s"', $className);
+            $msg = __('Could Not Find Class "%s"', $className);
             throw new SystemException($msg);
         }
         
@@ -67,5 +77,17 @@ class TrackingPlugin extends ObjectPlugin
         }
         
         return $vos;
+    }
+    
+    private function _getServiceByID(int $id): ?ServiceValuesObject
+    {
+        $values = $this->object->getServiceByID($id);
+        $service = null;
+        
+        if ($values) {
+            $service = new ServiceValuesObject($values);
+        }
+        
+        return $service;
     }
 }
