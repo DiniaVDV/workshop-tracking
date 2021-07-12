@@ -2,9 +2,11 @@
 
 namespace tracking\providers;
 
+use plugin\tracking\ITrackingService;
+
 abstract class AbstractProvider implements IProvider
 {
-    protected $service;
+    protected ITrackingService $service;
     
     public function onInit(SettingValuesObject $settings, ITrackingObject $object)
     {

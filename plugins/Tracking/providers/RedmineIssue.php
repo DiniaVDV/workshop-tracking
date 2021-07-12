@@ -2,7 +2,7 @@
 
 namespace tracking\providers;
 
-class Redmine extends AbstractProvider
+class RedmineIssue extends AbstractProvider
 {
     public function loadRemoteData(): array
     {

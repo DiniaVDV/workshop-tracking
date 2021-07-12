@@ -2,6 +2,8 @@
 
 namespace tracking\services;
 
+use SettingValuesObject;
+
 class Gitlab implements ITrackingService
 {
     protected $settings;
