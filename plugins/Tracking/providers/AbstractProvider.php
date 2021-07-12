@@ -2,16 +2,16 @@
 
 namespace tracking\providers;
 
-use plugin\tracking\ITrackingDAO;
+use plugin\tracking\ITrackingDataAccessObject;
 use plugin\tracking\ITrackingService;
 use plugin\tracking\vo\SettingValuesObject;
 
 abstract class AbstractProvider
 {
     protected ITrackingService $service;
-    protected ITrackingDAO $dao;
+    protected ITrackingDataAccessObject $dao;
     
-    public function onInit(SettingValuesObject $settings, ITrackingDAO $dao)
+    public function onInit(SettingValuesObject $settings, ITrackingDataAccessObject $dao)
     {
         $this->service = $this->_createServiceInstance($settings);
         $remoteUserCode = $settings->getRemoteUserCode();
