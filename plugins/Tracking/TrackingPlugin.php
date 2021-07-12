@@ -2,9 +2,12 @@
 
 class TrackingPlugin extends ObjectPlugin
 {
-    public function onCronSyncUsersData(): bool
+    public const TYPE_ISSUE  = 'issue';
+    public const TYPE_COMMIT = 'commit';
+    
+    public function onCronSyncUsersIssues(): bool
     {
-        $settings = $this->_searchSettings();
+        $settings = $this->_searchSettingsByType(static::TYPE_ISSUE);
     
         foreach ($settings as $setting) {
             $provider = $this->_getProviderInstanceBySetting($setting);
@@ -40,14 +43,13 @@ class TrackingPlugin extends ObjectPlugin
         return $instance;
     }
     
-    private function _getProviderPathByName(string $name)
+    private function _searchSettingsByType(string $type)
     {
-        return sprintf('%s/providers/%s.php', __DIR__, $name);
-    }
-    
-    private function _searchSettings()
-    {
-        $values = $this->object->searchSettings();
+        $search = array(
+            'type' => $type,
+        );
+        
+        $values = $this->object->searchSettings($search);
         
         if ($values) {
             $values = $this->_convertDataToValuesObject($values);
