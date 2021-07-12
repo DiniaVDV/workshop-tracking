@@ -1,7 +1,11 @@
 <?php
 
+use plugin\tracking\ITrackingDataAccessObject;
+use plugin\tracking\ITrackingService;
 use plugin\tracking\vo\ServiceValuesObject;
-use tracking\providers\IProvider;
+use plugin\tracking\vo\SettingValuesObject;
+use tracking\providers\IProviderIssue;
+use tracking\providers\IProviderCommit;
 
 class TrackingPlugin extends ObjectPlugin
 {
@@ -26,9 +30,94 @@ class TrackingPlugin extends ObjectPlugin
         return true;
     }
     
-    public function onCronSyncUsersDataByProvider(IProvider $provider)
+    public function onCronSyncUsersCommits(): bool
     {
+        $settings = $this->_searchSettingsByType(static::TYPE_COMMIT);
     
+        foreach ($settings as $setting) {
+            $provider = $this->_getProviderInstanceBySetting($setting);
+        
+            $data = $provider->loadRemoteData();
+        
+            foreach ($data as $values)
+            {
+                $provider->create($values);
+            }
+        }
+        
+        return true;
+    }
+    
+    public function onCronSyncUsersCommitsByProvider(IProviderCommit $provider, ITrackingDataAccessObject $dao)
+    {
+        $settings = $this->_searchSettingsByType($provider::TYPE);
+        $result = array();
+    
+        foreach ($settings as $setting) {
+            $service = $this->_createServiceInstance($setting);
+        
+            $provider->setService($service);
+        
+            $remoteUserCode = $settings->getRemoteUserCode();
+        
+            if (!$remoteUserCode) {
+                $provider->getService()->loadUserID();
+            }
+        
+            $data = $provider->loadRemoteData();
+        
+            foreach ($data as $values)
+            {
+                $result[] = $dao->createCommit($values);
+            }
+        }
+    
+        return $result;
+    }
+    
+    public function onCronSyncUsersIssuesByProvider(IProviderIssue $provider, ITrackingDataAccessObject $dao): array
+    {
+        $settings = $this->_searchSettingsByType($provider::TYPE);
+        $result = array();
+    
+        foreach ($settings as $setting) {
+            $service = $this->_createServiceInstance($setting);
+            
+            $provider->setService($service);
+            
+            $remoteUserCode = $settings->getRemoteUserCode();
+    
+            if (!$remoteUserCode) {
+                $provider->getService()->loadUserID();
+            }
+            
+            $data = $provider->loadRemoteData();
+        
+            foreach ($data as $values)
+            {
+                $result[] = $dao->createIssue($values);
+            }
+        }
+        
+        return $result;
+    }
+    
+    private function _onSyncBySettings(array $settings, IProviderCommit $provider): array
+    {
+        $result = array();
+    
+        foreach ($settings as $setting) {
+            $provider->onInit($setting, $dao);
+        
+            $data = $provider->loadRemoteData();
+        
+            foreach ($data as $values)
+            {
+                $result[] = $provider->create($values);
+            }
+        }
+        
+        return $result;
     }
     
     private function _getProviderInstanceBySetting(SettingValuesObject $setting): IProvider
@@ -48,7 +137,7 @@ class TrackingPlugin extends ObjectPlugin
         }
         
         $instance = new $className();
-        $instance->onInit($setting);
+        $instance->onInit($setting, $this->object);
         
         return $instance;
     }
@@ -89,5 +178,13 @@ class TrackingPlugin extends ObjectPlugin
         }
         
         return $service;
+    }
+    
+    
+    private function _createServiceInstance(SettingValuesObject $settings): ITrackingService
+    {
+        $className = 'tracking\\libs\\'.ucfirst($settings->getIdent());
+        
+        return new $className($settings);
     }
 }

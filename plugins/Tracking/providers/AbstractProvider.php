@@ -28,6 +28,11 @@ abstract class AbstractProvider
         return $this->service;
     }
     
+    public function setService(ITrackingService $service): void
+    {
+        $this->service = $service;
+    }
+    
     private function _createServiceInstance(SettingValuesObject $settings): ITrackingService
     {
         $className = 'tracking\\libs\\'.ucfirst($settings->getIdent());
