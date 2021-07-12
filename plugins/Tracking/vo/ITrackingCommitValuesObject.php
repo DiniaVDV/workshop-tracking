@@ -1,5 +1,7 @@
 <?php
 
+namespace plugin\tracking\vo;
+
 interface ITrackingCommitValuesObject
 {
     public function getHash(): string;

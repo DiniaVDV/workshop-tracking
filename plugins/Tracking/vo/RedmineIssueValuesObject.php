@@ -1,5 +1,6 @@
 <?php
 
+namespace plugin\tracking\vo;
 
 class RedmineIssueValuesObject extends ValuesObject implements ITrackingIssueValuesObject
 {

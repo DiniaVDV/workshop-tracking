@@ -2,7 +2,7 @@
 
 namespace tracking\providers;
 
-class Gitlab extends AbstractProvider
+class GitlabCommit extends AbstractProvider
 {
     public function loadRemoteData(): array
     {

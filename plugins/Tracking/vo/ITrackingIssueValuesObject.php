@@ -1,5 +1,7 @@
 <?php
 
+namespace plugin\tracking\vo;
+
 interface ITrackingIssueValuesObject
 {
     public function getStartDate(): string;

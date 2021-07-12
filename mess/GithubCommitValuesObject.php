@@ -1,5 +1,6 @@
 <?php
 
+namespace plugin\tracking\vo;
 
 class GithubCommitValuesObject extends ValuesObject implements ITrackingCommitValuesObject
 {
