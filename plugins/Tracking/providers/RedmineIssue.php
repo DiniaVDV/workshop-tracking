@@ -2,7 +2,9 @@
 
 namespace tracking\providers;
 
-class RedmineIssue extends AbstractProvider
+use plugin\tracking\vo\ITrackingIssueValuesObject;
+
+class RedmineIssue extends AbstractProvider implements IProviderIssue
 {
     public function loadRemoteData(): array
     {
@@ -11,6 +13,11 @@ class RedmineIssue extends AbstractProvider
         $this->_preparedIssues($issues);
         
         return $issues;
+    }
+    
+    public function create(ITrackingIssueValuesObject $commitValuesObject): array
+    {
+        return $this->dao->createIssue($commitValuesObject);
     }
     
     private function _preparedIssues(array &$issues): bool

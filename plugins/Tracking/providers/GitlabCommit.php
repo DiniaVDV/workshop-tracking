@@ -2,7 +2,9 @@
 
 namespace tracking\providers;
 
-class GitlabCommit extends AbstractProvider
+use plugin\tracking\vo\ITrackingCommitValuesObject;
+
+class GitlabCommit extends AbstractProvider implements IProviderCommit
 {
     public function loadRemoteData(): array
     {
@@ -19,5 +21,10 @@ class GitlabCommit extends AbstractProvider
         }
     
         return array_merge(...$commits);
+    }
+    
+    public function create(ITrackingCommitValuesObject $commitValuesObject): array
+    {
+        return $this->dao->createCommit($commitValuesObject);
     }
 }

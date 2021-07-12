@@ -2,7 +2,9 @@
 
 namespace tracking\providers;
 
-class GitlabIssue
+use plugin\tracking\vo\ITrackingIssueValuesObject;
+
+class GitlabIssue extends AbstractProvider implements IProviderIssue
 {
     public function loadRemoteData(): array
     {
@@ -12,6 +14,12 @@ class GitlabIssue
         
         return $issues;
     }
+    
+    public function create(ITrackingIssueValuesObject $issueValuesObject): array
+    {
+        return $this->dao->createIssue($issueValuesObject);
+    }
+    
     
     /**
      * @param array $issues
