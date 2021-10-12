@@ -1,14 +1,17 @@
 <?php
 
-namespace tracking\providers;
+namespace tracking\services;
 
 use plugin\tracking\vo\ITrackingIssueValuesObject;
 
-class GitlabIssue extends AbstractProvider implements IProviderIssue
+class GitlabIssue extends AbstractService implements IServiceIssue
 {
+    public const TYPE = 'issue';
+    public const PLATFORM = 'gitlab';
+    
     public function loadRemoteData(): array
     {
-        $issues = $this->getService()->getIssues();
+        $issues = $this->getProvider()->getIssues();
         
         $this->_getPreparedIssues($issues);
         
@@ -33,5 +36,15 @@ class GitlabIssue extends AbstractProvider implements IProviderIssue
         }
         
         return $result;
+    }
+    
+    public function getType(): string
+    {
+        return static::TYPE;
+    }
+    
+    public function getPlatform(): string
+    {
+        return static::PLATFORM;
     }
 }

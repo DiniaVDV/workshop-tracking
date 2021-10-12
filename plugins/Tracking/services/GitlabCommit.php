@@ -1,25 +1,28 @@
 <?php
 
-namespace tracking\providers;
+namespace tracking\services;
 
 use plugin\tracking\vo\GitlabCommitValuesObject;
 use plugin\tracking\vo\ITrackingCommitValuesObject;
 
-class GitlabCommit extends AbstractProvider implements IProviderCommit
+class GitlabCommit extends AbstractService implements IServiceCommit
 {
+    public const TYPE = 'commit';
+    public const PLATFORM = 'gitlab';
+    
     /**
      * @return GitlabCommitValuesObject[]
      */
     public function loadRemoteData(): array
     {
-        $projects = $this->getService()->getUserProjects();
+        $projects = $this->getProvider()->getUserProjects();
         $commits  = array();
         
         foreach ($projects as $project) {
-            $values = $this->getService()->getCommitsByProject($project);
+            $values = $this->getProvider()->getCommitsByProject($project);
             
             if ($values) {
-                $values = $this->getService()->getCommitsWithAdditionalData($project, $values);
+                $values = $this->getProvider()->getCommitsWithAdditionalData($project, $values);
                 $commits[] = $values;
             }
         }
@@ -30,5 +33,15 @@ class GitlabCommit extends AbstractProvider implements IProviderCommit
     public function create(ITrackingCommitValuesObject $commitValuesObject): array
     {
         return $this->dao->createCommit($commitValuesObject);
+    }
+    
+    public function getType(): string
+    {
+        return static::TYPE;
+    }
+    
+    public function getPlatform(): string
+    {
+        return static::PLATFORM;
     }
 }

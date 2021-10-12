@@ -2,7 +2,7 @@
 
 namespace plugin\tracking\vo;
 
-class ServiceValuesObject extends ValuesObject
+class ServiceValuesObject extends \ValuesObject
 {
     public function geClassName()
     {

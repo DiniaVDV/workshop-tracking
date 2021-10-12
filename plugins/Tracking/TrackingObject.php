@@ -29,6 +29,13 @@ class TrackingObject extends \DataAccessObject implements ITrackingDataAccessObj
         return $this->select($sql, $search, array(), static::FETCH_ROW);
     }
     
+    public function getService(array $search)
+    {
+        $sql = "SELECT * FROM ".static::TABLE_USER_SETTINGS;
+    
+        return $this->select($sql, $search, array(), static::FETCH_ROW);
+    }
+    
     public function createIssue(ITrackingIssueValuesObject $issueValuesObject)
     {
         return $this->insert(static::TABLE_ISSUES, $issueValuesObject->getValues());

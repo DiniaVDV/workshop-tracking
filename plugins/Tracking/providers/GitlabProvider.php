@@ -1,11 +1,11 @@
 <?php
 
-namespace tracking\services;
+namespace plugin\tracking\providers;
 
 use plugin\tracking\vo\GithubCommitValuesObject;
-use SettingValuesObject;
+use plugin\tracking\vo\SettingValuesObject;
 
-class Gitlab implements ITrackingService
+class GitlabProvider implements IProvider
 {
     protected $settings;
     
@@ -19,7 +19,7 @@ class Gitlab implements ITrackingService
         return $this->settings;
     }
     
-    public function loadUserID():bool
+    public function loadRemoteUserID(): ?int
     {
         // TODO move urls to some table
         $url = $this->getSettings()->getUrl().'user';
@@ -28,12 +28,12 @@ class Gitlab implements ITrackingService
         
         if (!array_key_exists('id', $response)) {
             //TODO Think
-            return false;
+            return null;
         }
     
         $this->getSettings()->setRemoteUserCode($response['id']);
         
-        return true;
+        return $response['id'];
     }
     
     public function getUserProjects()
@@ -83,7 +83,7 @@ class Gitlab implements ITrackingService
      */
     public function getCommitsWithAdditionalData(array $project, array $commits): array
     {
-        $data = array();
+        $values = array();
         
         foreach ($commits as $commit) {
             if ($commit['author_email'] !== $this->getSettings()->getEmail()) {
@@ -93,11 +93,11 @@ class Gitlab implements ITrackingService
             $commitData = $this->_getCommitWithAdditionalData($project, $commit);
             
             if ($commitData) {
-                $data[] = new GitlabValuesObject($commitData);
+                $values[] = new GitlabValuesObject($commitData);
             }
         }
         
-        return $data;
+        return $values;
     }
     
     private function _getCommitWithAdditionalData(array $project, array $commit): ?array

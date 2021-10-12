@@ -1,10 +1,10 @@
 <?php
 
-namespace tracking\services;
+namespace plugin\tracking\providers;
 
-class Redmine implements \ITrackingService
+class RedmineProvider implements IProvider
 {
-    public function loadUserID(): bool
+    public function loadRemoteUserID(): ?int
     {
         // TODO move urls to some table
         $url = $this->getSettings()->getUrl().'/users/current.json';
@@ -13,12 +13,12 @@ class Redmine implements \ITrackingService
     
         if (!array_key_exists('user', $response) || !is_array($response['user'])) {
             //TODO Think
-            return false;
+            return null;
         }
     
         $this->getSettings()->setRemoteUserCode($response['id']);
         
-        return true;
+        return $response['id'];
     }
     
     public function getIssues(): array
