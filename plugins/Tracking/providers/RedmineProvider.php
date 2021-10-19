@@ -2,8 +2,22 @@
 
 namespace plugin\tracking\providers;
 
+use plugin\tracking\vo\SettingValuesObject;
+
 class RedmineProvider implements IProvider
 {
+    protected $settings;
+    
+    public function __construct(SettingValuesObject $settings)
+    {
+        $this->settings = $settings;
+    }
+    
+    protected function getSettings(): SettingValuesObject
+    {
+        return $this->settings;
+    }
+    
     public function loadRemoteUserID(): ?int
     {
         // TODO move urls to some table
@@ -19,6 +33,16 @@ class RedmineProvider implements IProvider
         $this->getSettings()->setRemoteUserCode($response['id']);
         
         return $response['id'];
+    }
+    
+    public function getCommitsByProject(array $project): ?array
+    {
+        throw new \SystemException('Method not supported');
+    }
+    
+    public function getCommitsWithAdditionalData(array $project, array $commits): array
+    {
+        throw new \SystemException('Method not supported');
     }
     
     public function getIssues(): array

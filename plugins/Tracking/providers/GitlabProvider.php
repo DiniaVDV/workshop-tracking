@@ -100,6 +100,16 @@ class GitlabProvider implements IProvider
         return $values;
     }
     
+    public function getIssues(): array
+    {
+        // TODO: Implement getIssues() method.
+    }
+    
+    public function getIssueAdditionalInfo(array $issue): ?array
+    {
+        // TODO: Implement getIssueAdditionalInfo() method.
+    }
+    
     private function _getCommitWithAdditionalData(array $project, array $commit): ?array
     {
         // TODO move urls to some table
