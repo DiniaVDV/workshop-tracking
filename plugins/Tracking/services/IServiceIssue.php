@@ -2,18 +2,14 @@
 
 namespace tracking\services;
 
-use plugin\tracking\providers\IProvider;
+use DateTime;
 use plugin\tracking\vo\ITrackingIssueValuesObject;
 
 interface IServiceIssue
 {
-    public function loadRemoteData(): array;
-    
-    public function getProvider(): IProvider;
-    
-    public function setProvider(IProvider $provider): void;
-    
-    public function create(ITrackingIssueValuesObject $issueValuesObject): array;
+    public function loadRemoteData(DateTime $date): array;
+
+    public function create(ITrackingIssueValuesObject $issueValuesObject): ITrackingIssueValuesObject;
     
     public function getType(): string;
     

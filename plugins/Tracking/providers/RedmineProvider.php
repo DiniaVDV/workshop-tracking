@@ -2,18 +2,19 @@
 
 namespace plugin\tracking\providers;
 
-use plugin\tracking\vo\SettingValuesObject;
+use DateTime;
+use plugin\tracking\vo\UserSettingValuesObject;
 
-class RedmineProvider implements IProvider
+class RedmineProvider implements IProviderIssue
 {
     protected $settings;
     
-    public function __construct(SettingValuesObject $settings)
+    public function __construct(UserSettingValuesObject $settings)
     {
         $this->settings = $settings;
     }
     
-    protected function getSettings(): SettingValuesObject
+    protected function getSettings(): UserSettingValuesObject
     {
         return $this->settings;
     }
@@ -35,17 +36,7 @@ class RedmineProvider implements IProvider
         return $response['id'];
     }
     
-    public function getCommitsByProject(array $project): ?array
-    {
-        throw new \SystemException('Method not supported');
-    }
-    
-    public function getCommitsWithAdditionalData(array $project, array $commits): array
-    {
-        throw new \SystemException('Method not supported');
-    }
-    
-    public function getIssues(): array
+    public function getIssues(DateTime $date): array
     {
         $offset = 0;
         $limit  = 50;

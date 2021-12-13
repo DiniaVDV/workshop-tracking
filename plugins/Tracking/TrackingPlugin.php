@@ -1,25 +1,23 @@
 <?php
 
 use plugin\tracking\ITrackingDataAccessObject;
-use plugin\tracking\providers\IProvider;
+use plugin\tracking\providers\IProviderCommit;
+use plugin\tracking\providers\IProviderIssue;
 use plugin\tracking\vo\ServiceValuesObject;
-use plugin\tracking\vo\SettingValuesObject;
+use plugin\tracking\vo\UserSettingValuesObject;
 use tracking\services\IServiceIssue;
 use tracking\services\IServiceCommit;
 
 class TrackingPlugin extends ObjectPlugin
 {
-    public const TYPE_ISSUE  = 'issue';
-    public const TYPE_COMMIT = 'commit';
-    
-    public function onCronSyncUsersIssues(): bool
+    public function onCronSyncUsersIssues(DateTime $date): bool
     {
-        $settings = $this->_getSettingsByType(static::TYPE_ISSUE);
-   
-        foreach ($settings as $setting) {
-            $service = $this->_getServiceIssueInstanceBySetting($setting, $this->object);
+        $userSettings = $this->_getUserSettingsByType(ServiceValuesObject::TYPE_ISSUE);
         
-            $data = $service->loadRemoteData();
+        foreach ($userSettings as $userSettingValuesObject) {
+            $service = $this->_getServiceIssueInstanceBySetting($userSettingValuesObject);
+        
+            $data = $service->loadRemoteData($date);
         
             foreach ($data as $values)
             {
@@ -30,14 +28,14 @@ class TrackingPlugin extends ObjectPlugin
         return true;
     }
     
-    public function onCronSyncUsersCommits(): bool
+    public function onCronSyncUsersCommits(DateTime $date): bool
     {
-        $settings = $this->_getSettingsByType(static::TYPE_COMMIT);
+        $userSettings = $this->_getUserSettingsByType(ServiceValuesObject::TYPE_COMMIT);
         
-        foreach ($settings as $setting) {
-            $service = $this->_getServiceCommitInstanceBySetting($setting, $this->object);
+        foreach ($userSettings as $userSettingValuesObject) {
+            $service = $this->_getServiceCommitInstanceBySetting($userSettingValuesObject);
         
-            $data = $service->loadRemoteData();
+            $data = $service->loadRemoteData($date);
         
             foreach ($data as $values)
             {
@@ -48,22 +46,18 @@ class TrackingPlugin extends ObjectPlugin
         return true;
     }
     
-    public function onCronSyncUsersCommitsByProvider(IServiceCommit $service)
+    public function onCronSyncUsersCommitsByService(DateTime $date, IServiceCommit $service): array
     {
-        $settings = $this->_getSettingsByTypeAndPlatform($service->getType(), $service->getPlatform());
-    
-        if (!$settings) {
-            throw new SystemException('Not Found Users Connected To Service');
-        }
-    
+        $userSettings = $this->_getUserSettingsByService($service);
+
         $result = array();
     
-        foreach ($settings as $setting) {
-            $provider = $this->_createProviderInstance($setting);
+        foreach ($userSettings as $userSettingValuesObject) {
+            $provider = $this->_createCommitProviderInstance($userSettingValuesObject);
     
             $service->setProvider($provider);
         
-            $data = $service->loadRemoteData();
+            $data = $service->loadRemoteData($date);
         
             foreach ($data as $values)
             {
@@ -74,22 +68,18 @@ class TrackingPlugin extends ObjectPlugin
         return $result;
     }
     
-    public function onCronSyncUsersIssuesByProvider(IServiceIssue $service): array
+    public function onCronSyncUsersIssuesByService(DateTime $date, IServiceIssue $service): array
     {
-        $settings = $this->_getSettingsByTypeAndPlatform($service->getType(), $service->getPlatform());
-        
-        if (!$settings) {
-            throw new SystemException('Not Found Users Connected To Service');
-        }
-        
+        $userSettings = $this->_getUserSettingsByService($service);
+
         $result = array();
         
-        foreach ($settings as $setting) {
-            $provider = $this->_createProviderInstance($setting);
+        foreach ($userSettings as $userSettingValuesObject) {
+            $provider = $this->_createIssuesProviderInstance($userSettingValuesObject);
     
             $service->setProvider($provider);
             
-            $data = $service->loadRemoteData();
+            $data = $service->loadRemoteData($date);
         
             foreach ($data as $values)
             {
@@ -101,13 +91,13 @@ class TrackingPlugin extends ObjectPlugin
     }
     
     private function _getServiceCommitInstanceBySetting(
-        SettingValuesObject $setting, ITrackingDataAccessObject $dao
+        UserSettingValuesObject $userSettingValuesObject, ?ITrackingDataAccessObject $dao = null
     ): IServiceCommit
     {
-        $service = $this->_getServiceByID($setting->getServiceID());
+        $service = $this->_getServiceByID($userSettingValuesObject->getServiceID());
         
         if (!$service) {
-            $msg = __('Could Not Find Service By ID "%s"', $setting->getServiceID());
+            $msg = __('Could Not Find Service By ID "%s"', $userSettingValuesObject->getServiceID());
             throw new SystemException($msg);
         }
         
@@ -119,23 +109,21 @@ class TrackingPlugin extends ObjectPlugin
         }
         
         $instance = new $className();
-        $instance->onInit($setting, $dao);
+    
+        if (!$dao) {
+            $dao = $this->object;
+        }
+        
+        $instance->onInit($userSettingValuesObject, $dao);
         
         return $instance;
     }
     
     private function _getServiceIssueInstanceBySetting(
-        SettingValuesObject $setting, ITrackingDataAccessObject $dao
+        UserSettingValuesObject $userSettingValuesObject, ?ITrackingDataAccessObject $dao = null
     ): IServiceIssue
     {
-        $service = $this->_getServiceByID($setting->getServiceID());
-    
-        if (!$service) {
-            $msg = __('Could Not Find Service By ID "%s"', $setting->getServiceID());
-            throw new SystemException($msg);
-        }
-    
-        $className = $service->geClassName();
+        $className = $userSettingValuesObject->getClassName();
     
         if (!class_exists($className)) {
             $msg = __('Could Not Find Class "%s"', $className);
@@ -143,50 +131,45 @@ class TrackingPlugin extends ObjectPlugin
         }
     
         $instance = new $className();
-        $instance->onInit($setting, $dao);
+        
+        if (!$dao) {
+            $dao = $this->object;
+        }
+        
+        $instance->onInit($userSettingValuesObject, $dao);
     
         return $instance;
     }
     
-    private function _getSettingsByType(string $type)
+    private function _getUserSettingsByType(string $type): array
     {
         $search = array(
-            'type' => $type,
+            'tracking_services.type' => $type,
         );
         
-        $values = $this->object->searchSettings($search);
+        $values = $this->object->searchUserSettings($search);
         
         if ($values) {
-            $values = SettingValuesObject::convert($values);
+            $values = UserSettingValuesObject::convert($values);
         }
         
         return $values;
     }
 
-    private function _getSettingsByTypeAndPlatform(string $type, string $platform)
+    private function _getUserSettingsByService(IServiceIssue $service): array
     {
         $search = array(
-            'type'     => $type,
-            'platform' => $platform,
+            'tracking_services.type'     => $service->getType(),
+            'tracking_services.platform' => $service->getPlatform(),
         );
-        
-        $service = $this->object->getService($search);
-        
-        if (!$service) {
-            throw new SystemException('Not Found Service');
+
+        $values = $this->object->searchUserSettings($search);
+    
+        if (!$values) {
+            throw new SystemException('Not Found Users Connected To Service');
         }
     
-        $search = array(
-            'id_service' => $service['id'],
-        );
-        
-        $values = $this->object->searchSettings($search);
-        
-        if ($values) {
-            $values = SettingValuesObject::convert($values);
-        }
-        
-        return $values;
+        return UserSettingValuesObject::convert($values);
     }
 
     private function _getServiceByID(int $id): ?ServiceValuesObject
@@ -201,11 +184,25 @@ class TrackingPlugin extends ObjectPlugin
         return $service;
     }
     
-    
-    private function _createProviderInstance(SettingValuesObject $settings): IProvider
+    private function _createIssuesProviderInstance(UserSettingValuesObject $userSettingValuesObject): IProviderIssue
     {
-        $className = 'tracking\\providers\\'.ucfirst($settings->getIdent());
+        $className = $userSettingValuesObject->getClassName();
         
-        return new $className($settings);
+        if (!class_exists($className)) {
+            throw new SystemException('Calss Provider Not Found '.$className);
+        }
+        
+        return new $className($userSettingValuesObject);
+    }
+    
+    private function _createCommitProviderInstance(UserSettingValuesObject $userSettingValuesObject): IProviderCommit
+    {
+        $className = $userSettingValuesObject->getClassName();
+        
+        if (!class_exists($className)) {
+            throw new SystemException('Calss Provider Not Found '.$className);
+        }
+        
+        return new $className($userSettingValuesObject);
     }
 }

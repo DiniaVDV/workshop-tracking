@@ -14,4 +14,5 @@ interface ITrackingIssueValuesObject
     public function getHour(): string;
     public function getSubject(): string;
     public function getValues(): array;
+    public function setID(int $id): void;
 }

@@ -2,10 +2,11 @@
 
 namespace tracking\services;
 
+use DateTime;
 use plugin\tracking\vo\GitlabCommitValuesObject;
 use plugin\tracking\vo\ITrackingCommitValuesObject;
 
-class GitlabCommit extends AbstractService implements IServiceCommit
+class GitlabCommit extends AbstractServiceCommit implements IServiceCommit
 {
     public const TYPE = 'commit';
     public const PLATFORM = 'gitlab';
@@ -13,26 +14,18 @@ class GitlabCommit extends AbstractService implements IServiceCommit
     /**
      * @return GitlabCommitValuesObject[]
      */
-    public function loadRemoteData(): array
+    public function loadRemoteData(DateTime $date): array
     {
-        $projects = $this->getProvider()->getUserProjects();
-        $commits  = array();
-        
-        foreach ($projects as $project) {
-            $values = $this->getProvider()->getCommitsByProject($project);
-            
-            if ($values) {
-                $values = $this->getProvider()->getCommitsWithAdditionalData($project, $values);
-                $commits[] = $values;
-            }
-        }
-    
-        return array_merge(...$commits);
+        return $this->getProvider()->getCommits($date);
     }
     
-    public function create(ITrackingCommitValuesObject $commitValuesObject): array
+    public function create(ITrackingCommitValuesObject $commitValuesObject): ITrackingCommitValuesObject
     {
-        return $this->dao->createCommit($commitValuesObject);
+        $id = $this->dao->createCommit($commitValuesObject);
+        
+        $commitValuesObject->setID($id);
+        
+        return $commitValuesObject;
     }
     
     public function getType(): string

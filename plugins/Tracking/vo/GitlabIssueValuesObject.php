@@ -58,4 +58,9 @@ class GitlabIssueValuesObject extends \ValuesObject implements ITrackingIssueVal
     {
     
     }
+    
+    public function setID(int $id): void
+    {
+        // TODO: Implement setID() method.
+    }
 }

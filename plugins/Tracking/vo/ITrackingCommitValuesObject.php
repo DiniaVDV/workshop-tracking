@@ -12,4 +12,5 @@ interface ITrackingCommitValuesObject
     public function getWebUrl(): string;
     public function getUrlToProject(): string;
     public function getValues(): array;
+    public function setID(int $id): void;
 }

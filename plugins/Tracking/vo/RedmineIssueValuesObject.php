@@ -74,4 +74,9 @@ class RedmineIssueValuesObject extends \ValuesObject implements ITrackingIssueVa
     {
         return $this->get('issue');
     }
+    
+    public function setID(int $id): void
+    {
+        // TODO: Implement setID() method.
+    }
 }

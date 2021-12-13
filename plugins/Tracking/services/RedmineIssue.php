@@ -2,26 +2,34 @@
 
 namespace tracking\services;
 
+use DateTime;
 use plugin\tracking\vo\ITrackingIssueValuesObject;
 use plugin\tracking\vo\RedmineIssueValuesObject;
 
-class RedmineIssue extends AbstractService implements IServiceIssue
+class RedmineIssue extends AbstractServiceIssue implements IServiceIssue
 {
     public const TYPE = 'redmine';
     public const PLATFORM = 'gitlab';
     
-    public function loadRemoteData(): array
+    /**
+     * @return ITrackingIssueValuesObject[]
+     */
+    public function loadRemoteData(DateTime $date): array
     {
-        $issues = $this->getProvider()->getIssues();
+        $issues = $this->getProvider()->getIssues($date);
         
         $this->_preparedIssues($issues);
         
         return $issues;
     }
     
-    public function create(ITrackingIssueValuesObject $commitValuesObject): array
+    public function create(ITrackingIssueValuesObject $issueValuesObject): ITrackingIssueValuesObject
     {
-        return $this->dao->createIssue($commitValuesObject);
+        $id = $this->dao->createIssue($issueValuesObject);
+    
+        $issueValuesObject->setID($id);
+    
+        return $issueValuesObject;
     }
     
     private function _preparedIssues(array &$issues): bool

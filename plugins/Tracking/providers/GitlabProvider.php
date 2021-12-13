@@ -2,19 +2,21 @@
 
 namespace plugin\tracking\providers;
 
+use DateTime;
 use plugin\tracking\vo\GithubCommitValuesObject;
-use plugin\tracking\vo\SettingValuesObject;
+use plugin\tracking\vo\ITrackingCommitValuesObject;
+use plugin\tracking\vo\UserSettingValuesObject;
 
-class GitlabProvider implements IProvider
+class GitlabProvider implements IProviderCommit, IProviderIssue
 {
     protected $settings;
     
-    public function __construct(SettingValuesObject $settings)
+    public function __construct(UserSettingValuesObject $settings)
     {
         $this->settings = $settings;
     }
     
-    protected function getSettings(): SettingValuesObject
+    protected function getSettings(): UserSettingValuesObject
     {
         return $this->settings;
     }
@@ -34,6 +36,26 @@ class GitlabProvider implements IProvider
         $this->getSettings()->setRemoteUserCode($response['id']);
         
         return $response['id'];
+    }
+    
+    /**
+     * @return ITrackingCommitValuesObject[]
+     */
+    public function getCommits(DateTime $date): array
+    {
+        $projects = $this->getUserProjects();
+        $commits  = array();
+        
+        foreach ($projects as $project) {
+            $values = $this->getCommitsByProject($project);
+            
+            if ($values) {
+                $values = $this->getCommitsWithAdditionalData($project, $values);
+                $commits[] = $values;
+            }
+        }
+        
+        return array_merge(...$commits);
     }
     
     public function getUserProjects()
@@ -93,14 +115,14 @@ class GitlabProvider implements IProvider
             $commitData = $this->_getCommitWithAdditionalData($project, $commit);
             
             if ($commitData) {
-                $values[] = new GitlabValuesObject($commitData);
+                $values[] = new GithubCommitValuesObject($commitData);
             }
         }
         
         return $values;
     }
     
-    public function getIssues(): array
+    public function getIssues(DateTime $date): array
     {
         // TODO: Implement getIssues() method.
     }

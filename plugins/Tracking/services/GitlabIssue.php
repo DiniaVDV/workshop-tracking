@@ -2,31 +2,36 @@
 
 namespace tracking\services;
 
+use DateTime;
+use plugin\tracking\vo\GitlabIssueValuesObject;
 use plugin\tracking\vo\ITrackingIssueValuesObject;
 
-class GitlabIssue extends AbstractService implements IServiceIssue
+class GitlabIssue extends AbstractServiceIssue implements IServiceIssue
 {
     public const TYPE = 'issue';
     public const PLATFORM = 'gitlab';
     
-    public function loadRemoteData(): array
+    public function loadRemoteData(DateTime $date): array
     {
-        $issues = $this->getProvider()->getIssues();
+        $issues = $this->getProvider()->getIssues($date);
         
         $this->_getPreparedIssues($issues);
         
         return $issues;
     }
     
-    public function create(ITrackingIssueValuesObject $issueValuesObject): array
+    public function create(ITrackingIssueValuesObject $issueValuesObject): ITrackingIssueValuesObject
     {
-        return $this->dao->createIssue($issueValuesObject);
-    }
+        $id = $this->dao->createIssue($issueValuesObject);
     
+        $issueValuesObject->setID($id);
+    
+        return $issueValuesObject;
+    }
     
     /**
      * @param array $issues
-     * @return \GitlabIssueValuesObject
+     * @return GitlabIssueValuesObject[]
      */
     private function _getPreparedIssues(array &$issues): array
     {
